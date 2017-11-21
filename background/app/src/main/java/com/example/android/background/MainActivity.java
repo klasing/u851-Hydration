@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.BatteryManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
@@ -58,6 +60,19 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onResume() {
         super.onResume();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            BatteryManager batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
+            showCharging(batteryManager.isCharging());
+        } else {
+            IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+            Intent currentBatteryStatusIntent = registerReceiver(null, ifilter);
+            int batteryStatus = currentBatteryStatusIntent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+            boolean isCharging = batteryStatus == BatteryManager.BATTERY_STATUS_CHARGING ||
+                    batteryStatus == BatteryManager.BATTERY_STATUS_FULL;
+            showCharging(isCharging);
+        }
+
         registerReceiver(mChargingReceiver, mChargingIntentFilter);
     }
 
